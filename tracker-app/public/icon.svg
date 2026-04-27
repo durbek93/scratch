@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4caf50"/>
+      <stop offset="100%" stop-color="#1b5e20"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="256" height="256" fill="url(#bg)" />
+
+  <g stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    
+    <!-- Centered Card Element with slightly increased bottom margin (Visual Centering) -->
+    <rect x="48" y="68" width="160" height="104" rx="14" stroke-width="8" />
+    
+    <!-- Top Left Decor -->
+    <path d="M 66 96 L 66 84 L 78 84" stroke-width="6" />
+    
+    <!-- Bottom Right Decor -->
+    <path d="M 178 156 L 190 156 L 190 144" stroke-width="6" />
+
+  </g>
+
+  <!-- UZS text centered in the card -->
+  <text x="128" y="120" font-family="'Inter', sans-serif, 'Segoe UI'" font-weight="900" font-size="46" fill="#ffffff" text-anchor="middle" dominant-baseline="central" letter-spacing="1">UZS</text>
+</svg>
