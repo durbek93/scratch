@@ -1,50 +1,56 @@
-# React + TypeScript + Vite
+# 💰 Личный Финансовый Трекер (Finance Tracker)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Современное веб-приложение для учета личных финансов, созданное с фокусом на удобство использования, красивый интерфейс (glassmorphism) и безопасность. Позволяет детально отслеживать доходы, расходы, переводы между счетами и анализировать финансовую статистику.
 
-Currently, two official plugins are available:
+## ✨ Основные возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Управление счетами:** Ведение нескольких счетов в разных валютах (например, UZS и USD).
+- **Мультивалютность:** Корректный учет конвертаций, кросс-валютных переводов и расходов.
+- **Подробная аналитика:** Визуализация расходов и доходов, фильтрация по датам и категориям. Раздельный учет стандартных трат и расходов в конвертированной валюте.
+- **Гибкие транзакции:** Поддержка дробных значений, точного времени, добавления комментариев.
+- **Умное скрытие из статистики:** Возможность исключить определенные транзакции (quick-toggle) или целые счета из общей статистики.
+- **Безопасная авторизация:** Интеграция с Firebase Auth. Поддержка входа по Email/Паролю и по номеру телефона (СМС). Возможность привязки нескольких способов входа к одному аккаунту.
+- **Адаптивный UI/UX:** Темная и светлая темы, плавные микро-анимации, поддержка безопасных зон на мобильных устройствах (safe-area insets).
 
-## Expanding the ESLint configuration
+## 🛠 Технологический стек
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Frontend:** React, TypeScript, Vite
+- **Стилизация:** Чистый CSS, UI элементы на базе Lucide React
+- **Backend / База данных:** Firebase (Firestore, Authentication)
 
-- Configure the top-level `parserOptions` property like this:
+## 🚀 Последние обновления и изменения
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+В последних версиях приложения были добавлены и улучшены следующие функции:
+- **Безопасность:** Ключи конфигурации Firebase вынесены в переменные окружения (`.env`), проект полностью подготовлен для публичного репозитория на GitHub.
+- **Авторизация:** Настроена Firebase SMS-авторизация и логика связывания аккаунтов (телефон + email + Google).
+- **Аналитика:** Добавлен функционал быстрого скрытия отдельных транзакций из статистики.
+- **Интерфейс:** Оптимизированы меню настроек, добавлена поддержка мобильных устройств.
+- **Валюты:** Улучшена логика финансовых расчетов, включая переводы из одной валюты в другую с точным учетом затраченных средств.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## 📦 Установка и запуск (для разработчиков)
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/ВАШ_ЛОГИН/tracker-app.git
+   ```
+2. Перейдите в папку проекта:
+   ```bash
+   cd tracker-app
+   ```
+3. Установите зависимости:
+   ```bash
+   npm install
+   ```
+4. Создайте файл `.env` в корне проекта и добавьте ваши ключи Firebase:
+   ```env
+   VITE_FIREBASE_API_KEY=ваш_ключ
+   VITE_FIREBASE_AUTH_DOMAIN=ваш_домен
+   VITE_FIREBASE_PROJECT_ID=ваш_id_проекта
+   VITE_FIREBASE_STORAGE_BUCKET=ваш_bucket
+   VITE_FIREBASE_MESSAGING_SENDER_ID=ваш_sender_id
+   VITE_FIREBASE_APP_ID=ваш_app_id
+   ```
+5. Запустите сервер разработки:
+   ```bash
+   npm run dev
+   ```
