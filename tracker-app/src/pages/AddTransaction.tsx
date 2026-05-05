@@ -27,6 +27,8 @@ export default function AddTransaction() {
   const [addToExpenses, setAddToExpenses] = useState(false);
   const [excludeFromStats, setExcludeFromStats] = useState(false);
 
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
   // Default ids
   useEffect(() => {
     if (!accountId && accounts.length > 0 && !isEditing) {
@@ -101,6 +103,12 @@ export default function AddTransaction() {
     if (type !== 'transfer' && !categoryId) return;
     if (type === 'transfer' && !toAccountId) return;
     if (type !== 'transfer' && currency !== 'UZS' && !exchangeRate) return;
+    
+    const transactionDate = new Date(`${date}T${time}`);
+    if (transactionDate > new Date()) {
+      alert("Нельзя создавать операции в будущем времени!");
+      return;
+    }
     
     if (type === 'transfer' && accountId === toAccountId) {
        alert("Выберите разные счета для перевода");
@@ -426,7 +434,7 @@ export default function AddTransaction() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Дата</label>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="date-time-input" required />
+                <input type="date" value={date} max={todayStr} onChange={e => setDate(e.target.value)} className="date-time-input" required />
               </div>
               <div>
                 <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Время</label>
@@ -445,7 +453,7 @@ export default function AddTransaction() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Дата</label>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="date-time-input" required />
+                <input type="date" value={date} max={todayStr} onChange={e => setDate(e.target.value)} className="date-time-input" required />
               </div>
               <div>
                 <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Время</label>

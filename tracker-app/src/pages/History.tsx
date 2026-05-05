@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store';
 import { getIcon } from '../lib/icons';
-import { format, isSameDay, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
+import { format, isSameDay, startOfDay, endOfDay, startOfMonth, endOfMonth, isValid } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Wallet, Download, FileSpreadsheet, FileText, Table, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Transaction } from '../types';
@@ -39,15 +39,16 @@ export default function History() {
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
-  const selectedCategoryId = queryParams.get('category');
+  const [localCategory, setLocalCategory] = useState(queryParams.get('category') || '');
   const typeParam = queryParams.get('type');
   const currencyParam = queryParams.get('currency');
   const addToExpensesParam = queryParams.get('addToExpenses');
   const poolParam = queryParams.get('pool');
-  const hasFilterParams = Boolean(typeParam || currencyParam || addToExpensesParam || selectedCategoryId || poolParam);
+  const hasFilterParams = Boolean(typeParam || currencyParam || addToExpensesParam || localCategory || poolParam);
 
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [searchTerm, setSearchTerm] = useState('');
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -64,9 +65,26 @@ export default function History() {
 
   const filteredTransactions = transactions.filter(t => {
     const tDate = new Date(t.date);
-    if (startDate && tDate < startOfDay(new Date(startDate))) return false;
-    if (endDate && tDate > endOfDay(new Date(endDate))) return false;
-    if (selectedCategoryId && t.categoryId !== selectedCategoryId) return false;
+    
+    if (startDate) {
+      const sDate = new Date(startDate);
+      if (isValid(sDate) && tDate < startOfDay(sDate)) return false;
+    }
+    if (endDate) {
+      const eDate = new Date(endDate);
+      if (isValid(eDate) && tDate > endOfDay(eDate)) return false;
+    }
+    
+    if (localCategory && t.categoryId !== localCategory) return false;
+
+    if (searchTerm) {
+      const cat = categories.find(c => c.id === t.categoryId);
+      const catName = t.type === 'transfer' ? 'перевод' : (cat?.name.toLowerCase() || '');
+      const searchLower = searchTerm.toLowerCase();
+      const matchName = catName.includes(searchLower);
+      const matchNote = t.note?.toLowerCase().includes(searchLower);
+      if (!matchName && !matchNote) return false;
+    }
     
     if (poolParam === 'true') {
       const isPoolIncoming = t.type === 'transfer' && t.addToExpenses === true && t.currency === 'UZS';
@@ -147,34 +165,57 @@ export default function History() {
 
       <div className="glass-panel" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div>
-            <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>С даты</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <input
-              type="date"
+              type="text"
+              placeholder="Поиск по заметке..."
               className="date-time-input"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ flex: 1, marginBottom: '4px', width: '100%' }}
             />
+            <select
+              value={localCategory}
+              onChange={e => setLocalCategory(e.target.value)}
+              className="date-time-input"
+              style={{ flex: 1, marginBottom: '4px', width: '100%', boxSizing: 'border-box' }}
+            >
+              <option value="">Все категории</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>По дату</label>
-            <input
-              type="date"
-              className="date-time-input"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-            />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>С даты</label>
+              <input
+                type="date"
+                className="date-time-input"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>По дату</label>
+              <input
+                type="date"
+                className="date-time-input"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
         </div>
-        {(startDate || endDate || selectedCategoryId) && (
+        {(startDate || endDate || localCategory) && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {selectedCategoryId ? (
+            {localCategory ? (
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px' }}>
-                Категория: {categories.find(c => c.id === selectedCategoryId)?.name || 'Неизвестно'}
+                Категория: {categories.find(c => c.id === localCategory)?.name || 'Неизвестно'}
               </div>
             ) : <div />}
             <button
-              onClick={() => { setStartDate(''); setEndDate(''); navigate('/history'); }}
+              onClick={() => { setStartDate(''); setEndDate(''); setSearchTerm(''); setLocalCategory(''); navigate('/history'); }}
               style={{ color: 'var(--accent-primary)', fontSize: '14px', fontWeight: 500 }}
             >
               Сбросить фильтр

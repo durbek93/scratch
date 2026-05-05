@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { getIcon } from '../lib/icons';
-import { PieChart, BarChart2, TrendingDown } from 'lucide-react';
+import { PieChart, BarChart2, TrendingDown, Calendar } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, isValid } from 'date-fns';
 
 const formatCurrency = (amount: number, currency: string) => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(amount)) + ' ' + currency;
@@ -63,8 +64,36 @@ export default function Analytics() {
   const { transactions: storeTransactions, categories } = useStore();
   const navigate = useNavigate();
 
-  // Исключаем транзакции, скрытые от статистики
-  const transactions = storeTransactions.filter(t => !t.excludeFromStats);
+  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleMonthSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val) {
+      const [year, month] = val.split('-');
+      const d = new Date(parseInt(year), parseInt(month) - 1, 1);
+      setStartDate(format(startOfMonth(d), 'yyyy-MM-dd'));
+      setEndDate(format(endOfMonth(d), 'yyyy-MM-dd'));
+    }
+  };
+
+  // Filter out excluded and apply date range
+  const transactions = storeTransactions.filter(t => {
+    if (t.excludeFromStats) return false;
+    const tDate = new Date(t.date);
+
+    if (startDate) {
+      const sDate = new Date(startDate);
+      if (isValid(sDate) && tDate < startOfDay(sDate)) return false;
+    }
+    if (endDate) {
+      const eDate = new Date(endDate);
+      if (isValid(eDate) && tDate > endOfDay(eDate)) return false;
+    }
+
+    return true;
+  });
 
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [chartMode, setChartMode] = useState<'donut' | 'bar'>('donut');
@@ -89,7 +118,7 @@ export default function Analytics() {
   const usdToUzsTransfersInUZS = transactions
     .filter(t => t.type === 'transfer' && t.currency === 'USD' && t.convertedAmount)
     .reduce((acc, t) => acc + (t.convertedAmount ?? 0), 0);
-    
+
   const totalUsdSpentInUZS = usdExpensesInUZS + usdToUzsTransfersInUZS;
 
   // Total UZS expenses = regular + USD spent (in UZS equivalent)
@@ -164,16 +193,85 @@ export default function Analytics() {
         </button>
       </div>
 
+      <div style={{ marginBottom: '20px' }}>
+        {/* Date Filter Button */}
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="glass-panel"
+          style={{
+            width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', border: '1px solid var(--border-color)',
+            cursor: 'pointer',
+            borderRadius: isFilterOpen ? 'var(--radius-md) var(--radius-md) 0 0' : 'var(--radius-md)',
+            borderBottom: isFilterOpen ? 'none' : '1px solid var(--border-color)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={18} color="var(--text-primary)" />
+            <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
+              {startDate === format(startOfMonth(new Date()), 'yyyy-MM-dd') && endDate === format(endOfMonth(new Date()), 'yyyy-MM-dd')
+                ? 'Текущий месяц'
+                : `${startDate ? format(new Date(startDate), 'dd.MM.yy') : '...'} - ${endDate ? format(new Date(endDate), 'dd.MM.yy') : '...'}`
+              }
+            </span>
+          </div>
+          <span style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{isFilterOpen ? 'Скрыть' : 'Изменить'}</span>
+        </button>
+
+        {/* Date Filter Accordion */}
+        {isFilterOpen && (
+          <div className="glass-panel" style={{
+            width: '100%', padding: '16px', animation: 'fadeIn 0.2s ease-out',
+            borderRadius: '0 0 var(--radius-md) var(--radius-md)',
+            borderTop: '1px solid var(--border-color)'
+          }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label className="text-muted" style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Быстрый выбор месяца</label>
+              <input
+                type="month"
+                className="date-time-input"
+                value={startDate ? startDate.substring(0, 7) : ''}
+                onChange={handleMonthSelect}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <label className="text-muted" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>С (ручной ввод)</label>
+                <input
+                  type="date"
+                  className="date-time-input"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  style={{ padding: '8px', fontSize: '14px', width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="text-muted" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>По (ручной ввод)</label>
+                <input
+                  type="date"
+                  className="date-time-input"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                  style={{ padding: '8px', fontSize: '14px', width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── Expense summary cards (only when "Расходы" tab active) ── */}
       {type === 'expense' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-          
+
           {/* Main Card: Grand total (always visible) */}
-          <div 
-            className="glass-panel" 
+          <div
+            className="glass-panel"
             onClick={() => hasUsdPool && setIsExpensesExpanded(!isExpensesExpanded)}
-            style={{ 
-              padding: '18px 20px', 
+            style={{
+              padding: '18px 20px',
               background: hasUsdPool ? 'rgba(79,70,229,0.05)' : 'var(--glass-bg)',
               cursor: hasUsdPool ? 'pointer' : 'default',
               transition: 'background 0.2s ease'
@@ -201,7 +299,7 @@ export default function Analytics() {
           </div>
 
           {/* Collapsible details wrapper */}
-          <div style={{ 
+          <div style={{
             display: 'flex', flexDirection: 'column', gap: '10px',
             overflow: 'hidden', padding: isExpensesExpanded ? '2px' : '0 2px',
             transition: 'max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease',
@@ -209,9 +307,9 @@ export default function Analytics() {
             opacity: isExpensesExpanded ? 1 : 0
           }}>
             {/* Detailed Card 1: UZS expenses */}
-            <div 
+            <div
               onClick={() => navigate('/history?type=expense&currency=UZS')}
-              style={{ 
+              style={{
                 padding: '16px 20px', borderLeft: '4px solid var(--accent-primary)',
                 background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)',
                 cursor: 'pointer', borderTop: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)'
@@ -230,9 +328,9 @@ export default function Analytics() {
 
             {/* Detailed Card 2: USD pool (shown only if any transfer with addToExpenses) */}
             {hasUsdPool && (
-              <div 
+              <div
                 onClick={() => navigate('/history?pool=true')}
-                style={{ 
+                style={{
                   padding: '16px 20px', borderLeft: '4px solid #8b5cf6',
                   background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)',
                   cursor: 'pointer', borderTop: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)'

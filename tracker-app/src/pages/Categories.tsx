@@ -115,11 +115,13 @@ export default function Categories() {
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-          zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center'
+          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px'
         }}>
           <div className="glass-panel" style={{
             width: '100%', maxWidth: '400px', background: 'var(--bg-primary)',
-            borderRadius: '24px 24px 0 0', padding: '24px', animation: 'slideUp 0.3s ease-out'
+            borderRadius: '24px', padding: '24px', animation: 'fadeIn 0.2s ease-out',
+            maxHeight: '90vh', overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px' }}>
               {editingId ? 'Редактировать' : 'Новая категория'}
@@ -185,9 +187,9 @@ export default function Categories() {
         </div>
       )}
       <style>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
