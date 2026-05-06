@@ -73,6 +73,9 @@ export default function AddTransaction() {
     return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
   };
 
+  const selectedCategory = categories.find(c => c.id === categoryId);
+  const isCategoryExcluded = selectedCategory?.excludeFromStats || false;
+
   const handleAmountChange = (val: string) => {
     let raw = val.replace(/\s/g, '').replace(',', '.');
     if (/^\d*\.?\d{0,2}$/.test(raw)) {
@@ -476,16 +479,19 @@ export default function AddTransaction() {
         </div>
 
         {type !== 'transfer' && (
-          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: isCategoryExcluded ? 'not-allowed' : 'pointer', background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', opacity: isCategoryExcluded ? 0.7 : 1 }}>
             <input 
               type="checkbox" 
-              checked={excludeFromStats} 
-              onChange={e => setExcludeFromStats(e.target.checked)} 
-              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer', flexShrink: 0 }}
+              checked={isCategoryExcluded ? true : excludeFromStats} 
+              onChange={e => { if (!isCategoryExcluded) setExcludeFromStats(e.target.checked); }} 
+              disabled={isCategoryExcluded}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: isCategoryExcluded ? 'not-allowed' : 'pointer', flexShrink: 0 }}
             />
             <div>
               <p style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>Скрыть из статистики</p>
-              <p className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4 }}>Эта операция изменит баланс счета, но не будет участвовать в отчетах по категориям.</p>
+              <p className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4 }}>
+                {isCategoryExcluded ? "Скрыто из статистики настройками выбранной категории." : "Эта операция изменит баланс счета, но не будет участвовать в отчетах по категориям."}
+              </p>
             </div>
           </label>
         )}

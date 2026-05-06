@@ -81,6 +81,9 @@ export default function Analytics() {
   // Filter out excluded and apply date range
   const transactions = storeTransactions.filter(t => {
     if (t.excludeFromStats) return false;
+    const cat = categories.find(c => c.id === t.categoryId);
+    if (cat?.excludeFromStats) return false;
+
     const tDate = new Date(t.date);
 
     if (startDate) {

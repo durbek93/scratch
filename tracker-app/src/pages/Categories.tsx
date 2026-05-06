@@ -21,12 +21,14 @@ export default function Categories() {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [iconName, setIconName] = useState('HelpCircle');
+  const [excludeFromStats, setExcludeFromStats] = useState(false);
 
   const openAdd = () => {
     setEditingId(null);
     setName('');
     setColor(COLORS[0]);
     setIconName('HelpCircle');
+    setExcludeFromStats(false);
     setIsModalOpen(true);
   };
 
@@ -35,6 +37,7 @@ export default function Categories() {
     setName(c.name);
     setColor(c.color);
     setIconName(c.iconName);
+    setExcludeFromStats(c.excludeFromStats || false);
     setIsModalOpen(true);
   };
 
@@ -42,9 +45,9 @@ export default function Categories() {
     if (!name.trim()) return;
     
     if (editingId) {
-      await updateCategory(editingId, { name, color, iconName, type: activeTab });
+      await updateCategory(editingId, { name, color, iconName, type: activeTab, excludeFromStats });
     } else {
-      await addCategory({ name, color, iconName, type: activeTab });
+      await addCategory({ name, color, iconName, type: activeTab, excludeFromStats });
     }
     setIsModalOpen(false);
   };
@@ -132,8 +135,18 @@ export default function Categories() {
               placeholder="Название категории" 
               value={name}
               onChange={e => setName(e.target.value)}
-              style={{ width: '100%', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', marginBottom: '20px', fontSize: '16px' }}
+              style={{ width: '100%', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', marginBottom: '16px', fontSize: '16px' }}
             />
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={excludeFromStats}
+                onChange={e => setExcludeFromStats(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)' }}
+              />
+              <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Не учитывать в статистике (долги, возвраты)</span>
+            </label>
 
             <label className="text-muted" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Цвет</label>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '12px' }}>

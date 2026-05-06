@@ -8,6 +8,7 @@ export interface Category {
   iconName: string;
   color: string;
   userId?: string;
+  excludeFromStats?: boolean;
 }
 
 export interface Account {

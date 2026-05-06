@@ -115,7 +115,7 @@ const Dashboard = () => {
                       {isIncome ? '+' : (isTransfer ? '' : '-')}{formatCurrency(t.amount, t.currency)}
                     </p>
                     
-                    {!isTransfer && (
+                    {!isTransfer && !category?.excludeFromStats && (
                       <button 
                         onClick={async (e) => {
                           e.preventDefault();
@@ -127,6 +127,14 @@ const Dashboard = () => {
                       >
                         {t.excludeFromStats ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
+                    )}
+                    {!isTransfer && category?.excludeFromStats && (
+                      <div 
+                        style={{ color: 'var(--text-muted)', padding: '4px', opacity: 0.5 }}
+                        title="Скрыто из статистики настройками категории"
+                      >
+                        <EyeOff size={18} />
+                      </div>
                     )}
                   </div>
                 </Link>
